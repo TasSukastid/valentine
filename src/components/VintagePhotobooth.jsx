@@ -80,18 +80,19 @@ const VintagePhotobooth = () => {
         // Flash effect
         setShowFlash(true);
         const imageSrc = webcamRef.current.getScreenshot();
-        
+
         if (imageSrc) {
           photos.push(imageSrc);
         } else {
           throw new Error('Failed to capture photo');
         }
-        
+
         await new Promise(resolve => setTimeout(resolve, 200));
         setShowFlash(false);
-        
+
         if (i < 3) {
-          await new Promise(resolve => setTimeout(resolve, 1500));
+          // Delay increased to 5 seconds
+          await new Promise(resolve => setTimeout(resolve, 5000));
         }
       } catch (error) {
         console.error('Error capturing photo:', error);
@@ -120,11 +121,29 @@ const VintagePhotobooth = () => {
           backgroundColor: '#ffffff',
           scale: 2,
         });
-        
+
+        const imageData = canvas.toDataURL('image/png');
         const link = document.createElement('a');
-        link.download = `valentine-photobooth-${Date.now()}.png`;
-        link.href = canvas.toDataURL();
-        link.click();
+
+        // Check if the browser supports download attribute
+        if (typeof link.download !== 'undefined') {
+          link.download = `valentine-photobooth-${Date.now()}.png`;
+          link.href = imageData;
+          link.click();
+        } else {
+          // For browsers that do not support download (e.g., some mobile browsers)
+          const newTab = window.open();
+          if (newTab) {
+            newTab.document.body.style.margin = '0';
+            const img = new Image();
+            img.src = imageData;
+            img.style.width = '100%';
+            img.style.height = 'auto';
+            newTab.document.body.appendChild(img);
+          } else {
+            console.error('Unable to open new tab for image preview.');
+          }
+        }
       } catch (error) {
         console.error('Error downloading photo strip:', error);
       }
