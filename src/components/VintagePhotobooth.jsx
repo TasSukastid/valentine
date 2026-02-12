@@ -14,16 +14,32 @@ const VintagePhotobooth = () => {
   const [showPhotoStrip, setShowPhotoStrip] = useState(false);
   const [cameraError, setCameraError] = useState(null);
   const [cameraReady, setCameraReady] = useState(false);
+  const [requestingCamera, setRequestingCamera] = useState(true);
 
   const handleUserMedia = () => {
+    console.log('Camera ready!');
     setCameraReady(true);
     setCameraError(null);
+    setRequestingCamera(false);
   };
 
   const handleUserMediaError = (error) => {
     console.error('Camera error:', error);
-    setCameraError('Unable to access camera. Please allow camera permissions.');
+    let errorMessage = 'Unable to access camera.';
+    
+    if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+      errorMessage = '❌ Camera permission denied. Please allow camera access in your browser settings.';
+    } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+      errorMessage = '❌ No camera found. Please connect a camera.';
+    } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
+      errorMessage = '❌ Camera is busy. Please close other apps using the camera.';
+    } else {
+      errorMessage = `❌ Camera error: ${error.message || 'Unknown error'}`;
+    }
+    
+    setCameraError(errorMessage);
     setCameraReady(false);
+    setRequestingCamera(false);
   };
 
   const startPhotobooth = async () => {
@@ -156,100 +172,118 @@ const VintagePhotobooth = () => {
             <div className="bg-charcoal p-4 md:p-6 rounded-lg shadow-2xl border-4 border-black max-w-sm mx-auto">
               {/* Photobooth Screen */}
               <div className="relative aspect-[9/16] bg-black rounded overflow-hidden mb-4 film-grain border-2 border-gray-700" style={{ maxHeight: '480px' }}>
-                {isActive ? (
-                  <>
-                    <Webcam
-                      ref={webcamRef}
-                      audio={false}
-                      screenshotFormat="image/jpeg"
-                      className="w-full h-full object-cover"
-                      style={{
-                        filter: 'grayscale(100%) contrast(135%) brightness(105%) saturate(0%)',
-                      }}
-                      videoConstraints={{
-                        facingMode: 'user',
-                        width: { ideal: 1280 },
-                        height: { ideal: 1920 },
-                      }}
-                      onUserMedia={handleUserMedia}
-                      onUserMediaError={handleUserMediaError}
-                      screenshotQuality={1}
-                      mirrored={true}
-                    />
-                    
-                    {/* Scan lines overlay for vintage effect */}
-                    <div 
-                      className="absolute inset-0 pointer-events-none"
-                      style={{
-                        backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.06) 2px, rgba(0,0,0,.06) 4px)',
-                        opacity: 0.4,
-                      }}
-                    />
-                    
-                    {/* Camera status indicator */}
-                    {!cameraReady && (
-                      <div className="absolute top-2 right-2 bg-yellow-500 bg-opacity-80 text-black text-[10px] px-2 py-1 rounded font-bold z-10">
-                        LOADING
-                      </div>
-                    )}
-                    {cameraReady && (
-                      <div className="absolute top-2 right-2 bg-green-500 bg-opacity-80 text-white text-[10px] px-2 py-1 rounded font-bold z-10 animate-pulse">
-                        READY
-                      </div>
-                    )}
-                    
-                    {/* Countdown Overlay */}
-                    <AnimatePresence>
-                      {countdown && (
-                        <motion.div
-                          key={countdown}
-                          initial={{ scale: 0, opacity: 0 }}
-                          animate={{ scale: 1, opacity: 1 }}
-                          exit={{ scale: 1.5, opacity: 0 }}
-                          className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 z-20"
-                        >
-                          <span className="font-serif text-7xl md:text-9xl text-white">
-                            {countdown}
-                          </span>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-
-                    {/* Flash Effect */}
-                    <AnimatePresence>
-                      {showFlash && (
-                        <motion.div
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                          transition={{ duration: 0.1 }}
-                          className="absolute inset-0 bg-white z-30"
-                        />
-                      )}
-                    </AnimatePresence>
-                  </>
-                ) : (
-                  <div className="flex items-center justify-center h-full bg-gradient-to-b from-gray-900 to-black">
-                    <div className="text-center p-6">
-                      <div className="text-5xl md:text-6xl mb-4 animate-pulse">📷</div>
-                      <p className="text-white font-serif text-lg md:text-xl mb-2">
-                        Ready for your
-                      </p>
-                      <p className="text-deep-red font-serif text-xl md:text-2xl font-bold mb-3">
-                        Vintage Photobooth?
-                      </p>
-                      <div className="flex justify-center gap-1 text-white text-xs opacity-60">
-                        <span>♥</span>
-                        <span>♥</span>
-                        <span>♥</span>
-                      </div>
-                      {cameraError && (
-                        <p className="text-yellow-400 text-xs mt-3 max-w-xs mx-auto">
-                          {cameraError}
-                        </p>
-                      )}
-                    </div>
+                {/* Webcam is always mounted for camera access */}
+                <Webcam
+                  ref={webcamRef}
+                  audio={false}
+                  screenshotFormat="image/jpeg"
+                  className="w-full h-full object-cover"
+                  style={{
+                    filter: 'grayscale(100%) contrast(135%) brightness(105%) saturate(0%)',
+                    visibility: isActive ? 'visible' : 'hidden',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                  }}
+                  videoConstraints={{
+                    facingMode: 'user',
+                    width: { ideal: 1280 },
+                    height: { ideal: 1920 },
+                  }}
+                  onUserMedia={handleUserMedia}
+                  onUserMediaError={handleUserMediaError}
+                  screenshotQuality={1}
+                  mirrored={true}
+                />
+                
+                {/* Scan lines overlay for vintage effect */}
+                {isActive && (
+                  <div 
+                    className="absolute inset-0 pointer-events-none"
+                    style={{
+                      backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.06) 2px, rgba(0,0,0,.06) 4px)',
+                      opacity: 0.4,
+                    }}
+                  />
+                )}
+                
+                {/* Camera status indicator */}
+                {!cameraReady && isActive && (
+                  <div className="absolute top-2 right-2 bg-yellow-500 bg-opacity-80 text-black text-[10px] px-2 py-1 rounded font-bold z-10">
+                    LOADING
                   </div>
+                )}
+                {cameraReady && isActive && (
+                  <div className="absolute top-2 right-2 bg-green-500 bg-opacity-80 text-white text-[10px] px-2 py-1 rounded font-bold z-10 animate-pulse">
+                    READY
+                  </div>
+                )}
+                
+                {/* Countdown Overlay */}
+                <AnimatePresence>
+                  {countdown && (
+                    <motion.div
+                      key={countdown}
+                      initial={{ scale: 0, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ scale: 1.5, opacity: 0 }}
+                      className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 z-20"
+                    >
+                      <span className="font-serif text-7xl md:text-9xl text-white">
+                        {countdown}
+                      </span>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Flash Effect */}
+                <AnimatePresence>
+                  {showFlash && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.1 }}
+                      className="absolute inset-0 bg-white z-30"
+                    />
+                  )}
+                </AnimatePresence>
+                
+                {/* Idle screen overlay (shown when not active) */}
+                {!isActive && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-b from-gray-900 to-black">
+                  <div className="text-center p-6">
+                    <div className="text-5xl md:text-6xl mb-4 animate-pulse">📷</div>
+                    <p className="text-white font-serif text-lg md:text-xl mb-2">
+                      Ready for your
+                    </p>
+                    <p className="text-deep-red font-serif text-xl md:text-2xl font-bold mb-3">
+                      Vintage Photobooth?
+                    </p>
+                    <div className="flex justify-center gap-1 text-white text-xs opacity-60">
+                      <span>♥</span>
+                      <span>♥</span>
+                      <span>♥</span>
+                    </div>
+                    
+                    {/* Camera status messages */}
+                    {requestingCamera && !cameraError && (
+                      <div className="mt-3 text-yellow-300 text-xs animate-pulse">
+                        🔄 Requesting camera access...
+                      </div>
+                    )}
+                    {cameraReady && !cameraError && (
+                      <div className="mt-3 text-green-400 text-xs">
+                        ✓ Camera ready!
+                      </div>
+                    )}
+                    {cameraError && (
+                      <div className="mt-3 text-yellow-400 text-xs max-w-[200px] mx-auto leading-relaxed">
+                        {cameraError}
+                      </div>
+                    )}
+                  </div>
+                </div>
                 )}
               </div>
 
@@ -272,14 +306,9 @@ const VintagePhotobooth = () => {
                 )}
                 
                 {isCapturing && (
-                  <div className="text-white font-serif text-lg animate-pulse">
+                  <div className="text-white font-serif text-lg animate-pulse flex items-center gap-2">
+                    <span className="inline-block w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
                     Capturing...
-                  </div>
-                )}
-                
-                {cameraError && isActive && (
-                  <div className="text-yellow-400 text-xs max-w-xs">
-                    ⚠️ {cameraError}
                   </div>
                 )}
               </div>
@@ -420,9 +449,14 @@ const VintagePhotobooth = () => {
                 <span>Make memories together</span>
                 <span>♥</span>
               </div>
-              {!cameraReady && (
+              {requestingCamera && (
                 <div className="mt-3 text-[10px] text-gray-600 pt-2 border-t border-gray-300">
                   💡 Please allow camera access when prompted
+                </div>
+              )}
+              {cameraError && (
+                <div className="mt-3 text-[10px] text-red-600 pt-2 border-t border-gray-300">
+                  ⚠️ Camera access issue detected
                 </div>
               )}
             </div>
