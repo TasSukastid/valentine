@@ -199,7 +199,7 @@ const ScrollStory = () => {
             My valentine has always been
           </h2>
           <h2 className="font-serif text-4xl md:text-7xl text-deep-red drop-shadow-lg">
-            Kongkwaun.
+            Kongkwuan.
           </h2>
           
           {/* Decorative bottom element */}
