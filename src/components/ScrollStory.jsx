@@ -228,7 +228,7 @@ const ScrollStory = () => {
           <img 
             src="/valentine/flower.png" 
             alt="Flower for my valentine" 
-            className="max-w-[80%] max-h-[80vh] object-contain filter drop-shadow-2xl"
+            className="max-w-[95%] max-h-[85vh] md:max-w-[80%] md:max-h-[80vh] object-contain filter drop-shadow-2xl"
           />
           
           {/* Subtle glow effect */}

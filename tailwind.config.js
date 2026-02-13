@@ -9,7 +9,7 @@ export default {
       colors: {
         'off-white': '#f0f0f0',
         'charcoal': '#1a1a1a',
-        'deep-red': '#cc0000',
+        'deep-red': '#ff6c6c',
       },
       fontFamily: {
         'serif': ['Playfair Display', 'serif'],

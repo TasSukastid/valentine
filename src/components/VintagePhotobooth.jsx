@@ -53,16 +53,6 @@ const VintagePhotobooth = () => {
     setCapturedPhotos([]);
     setCameraError(null);
     
-    // Start countdown
-    await new Promise(resolve => setTimeout(resolve, 500));
-    setCountdown(3);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setCountdown(2);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setCountdown(1);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setCountdown(null);
-
     // Capture 4 photos
     setIsCapturing(true);
     const photos = [];
@@ -76,6 +66,16 @@ const VintagePhotobooth = () => {
           setIsActive(false);
           return;
         }
+
+        // Countdown before each photo
+        await new Promise(resolve => setTimeout(resolve, 500));
+        setCountdown(3);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        setCountdown(2);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        setCountdown(1);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        setCountdown(null);
 
         // Flash effect
         setShowFlash(true);
@@ -91,8 +91,8 @@ const VintagePhotobooth = () => {
         setShowFlash(false);
 
         if (i < 3) {
-          // Delay increased to 5 seconds
-          await new Promise(resolve => setTimeout(resolve, 5000));
+          // Delay before next photo countdown
+          await new Promise(resolve => setTimeout(resolve, 2000));
         }
       } catch (error) {
         console.error('Error capturing photo:', error);
@@ -340,24 +340,24 @@ const VintagePhotobooth = () => {
               className="flex flex-col items-center"
             >
               {/* Photo Strip Container with Red Background */}
-              <div className="bg-deep-red p-4 md:p-6 rounded-lg">
+              <div className="bg-charcoal p-4 md:p-6">
                 {/* Photo Strip */}
                 <div
                   ref={photoStripRef}
                   className="bg-white shadow-2xl relative mx-auto"
                   style={{ 
-                    width: '240px',
-                    padding: '16px 12px',
+                    width: '200px',
+                    padding: '14px 10px',
                   }}
                 >
                   {/* Header */}
-                  <div className="text-center mb-3 pb-2 border-b border-gray-300">
-                    <p className="text-[9px] font-bold text-charcoal leading-tight">It was always you, Giffin.</p>
-                    <p className="text-[9px] font-bold text-deep-red mt-0.5">Always.</p>
+                  <div className="text-center mb-2 pb-1.5 border-b border-gray-300">
+                    <p className="text-[8px] font-bold text-charcoal leading-tight">It was always you, Giffin.</p>
+                    <p className="text-[8px] font-bold text-deep-red">Always.</p>
                   </div>
                   
                   {/* Photos */}
-                  <div className="space-y-2">
+                  <div className="space-y-1.5">
                     {capturedPhotos.map((photo, index) => (
                       <motion.div
                         key={index}
@@ -366,7 +366,7 @@ const VintagePhotobooth = () => {
                         transition={{ delay: index * 0.2 }}
                         className="relative"
                       >
-                        <div className="border-[3px] border-black shadow-md film-grain relative overflow-hidden">
+                        <div className="border-[2px] border-black shadow-md film-grain relative overflow-hidden">
                           <img
                             src={photo}
                             alt={`Capture ${index + 1}`}
@@ -390,22 +390,22 @@ const VintagePhotobooth = () => {
                   </div>
                   
                   {/* Footer / Signature */}
-                  <div className="mt-3 pt-2 border-t border-gray-300">
+                  <div className="mt-2 pt-1.5 border-t border-gray-300">
                     <div className="text-center">
-                      <p className="font-handwritten text-2xl text-charcoal leading-none">
+                      <p className="font-handwritten text-base text-charcoal leading-none">
                         My Valentines
                       </p>
-                      <p className="text-[8px] text-gray-500 mt-1.5 tracking-wide">
+                      <p className="text-[7px] text-gray-500 mt-1 tracking-wide">
                         {new Date().toLocaleDateString('en-US', {
                           month: 'short',
                           day: 'numeric',
                           year: 'numeric',
                         }).toUpperCase()}
                       </p>
-                      <div className="flex justify-center gap-1 mt-1.5">
-                        <span className="text-deep-red text-[10px]">♥</span>
-                        <span className="text-deep-red text-[10px]">♥</span>
-                        <span className="text-deep-red text-[10px]">♥</span>
+                      <div className="flex justify-center gap-1 mt-1">
+                        <span className="text-deep-red text-[9px]">♥</span>
+                        <span className="text-deep-red text-[9px]">♥</span>
+                        <span className="text-deep-red text-[9px]">♥</span>
                       </div>
                     </div>
                   </div>
