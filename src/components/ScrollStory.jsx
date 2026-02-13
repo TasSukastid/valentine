@@ -63,12 +63,15 @@ const Confetti = () => {
 
 const ScrollStory = () => {
   const [showConfetti, setShowConfetti] = useState(false);
+  const [musicPlayed, setMusicPlayed] = useState(false);
+  const [audioEnabled, setAudioEnabled] = useState(false);
   const { scrollY } = useScroll();
 
   // Calculate opacity for each section based on scroll position
   const section1Opacity = useTransform(scrollY, [0, 300, 600], [1, 0, 0]);
-  const section2Opacity = useTransform(scrollY, [300, 600, 900], [0, 1, 0]);
-  const section3Opacity = useTransform(scrollY, [600, 900, 1200], [0, 1, 1]);
+  const section2Opacity = useTransform(scrollY, [300, 600, 1200], [0, 1, 0]);
+  const section3Opacity = useTransform(scrollY, [1200, 1500, 1800], [0, 1, 0]);
+  const section4Opacity = useTransform(scrollY, [1800, 2100, 3000], [0, 1, 1]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -80,15 +83,51 @@ const ScrollStory = () => {
           document.body.style.backgroundColor = '#f0f0f0';
         }, 200);
       }
+      
+      // Play music when reaching section 4
+      if (window.scrollY > 1800 && !musicPlayed && audioEnabled) {
+        setMusicPlayed(true);
+        const audio = document.getElementById('valentine-music');
+        if (audio) {
+          audio.volume = 0.5;
+          audio.play().catch(err => console.log('Audio play failed:', err));
+        }
+      }
     };
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [showConfetti]);
+  }, [showConfetti, musicPlayed, audioEnabled]);
+
+  const enableAudio = () => {
+    setAudioEnabled(true);
+    // Try to play immediately if already scrolled past the threshold
+    if (window.scrollY > 1800 && !musicPlayed) {
+      setMusicPlayed(true);
+      const audio = document.getElementById('valentine-music');
+      if (audio) {
+        audio.volume = 0.5;
+        audio.play().catch(err => console.log('Audio play failed:', err));
+      }
+    }
+  };
 
   return (
     <>
       {showConfetti && <Confetti />}
+      
+      {/* Audio enable button */}
+      {!audioEnabled && (
+        <motion.button
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          onClick={enableAudio}
+          className="fixed top-4 right-4 z-50 bg-deep-red text-white px-4 py-2 rounded-full shadow-lg hover:bg-red-700 transition-colors flex items-center gap-2 pointer-events-auto"
+        >
+          <span className="text-lg">🎵</span>
+          <span className="text-sm font-serif">Enable Music</span>
+        </motion.button>
+      )}
       
       {/* Section 1 */}
       <motion.section
@@ -172,8 +211,45 @@ const ScrollStory = () => {
         </div>
       </motion.section>
 
+      {/* Section 4 - Flower with black background */}
+      <motion.section
+        style={{ opacity: section4Opacity }}
+        className="h-screen flex items-center justify-center fixed top-0 left-0 right-0 pointer-events-none"
+      >
+        {/* Pure black background */}
+        <div className="absolute inset-0 bg-black" style={{ backgroundColor: '#000000' }}></div>
+        
+        <motion.div 
+          className="relative w-full h-full flex items-center justify-center z-10"
+          initial={{ scale: 0.8, opacity: 0 }}
+          whileInView={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 2, ease: "easeOut" }}
+        >
+          <img 
+            src="/valentine/flower.png" 
+            alt="Flower for my valentine" 
+            className="max-w-[80%] max-h-[80vh] object-contain filter drop-shadow-2xl"
+          />
+          
+          {/* Subtle glow effect */}
+          <motion.div 
+            className="absolute inset-0 flex items-center justify-center"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            transition={{ duration: 2.5, delay: 0.5 }}
+          >
+            <div className="w-96 h-96 bg-deep-red opacity-10 blur-3xl rounded-full"></div>
+          </motion.div>
+        </motion.div>
+      </motion.section>
+
+      {/* Audio element */}
+      <audio id="valentine-music" loop>
+        <source src="/valentine/music.mp3" type="audio/mpeg" />
+      </audio>
+
       {/* Spacer for scroll */}
-      <div className="h-[200vh]"></div>
+      <div className="h-[400vh]"></div>
     </>
   );
 };
